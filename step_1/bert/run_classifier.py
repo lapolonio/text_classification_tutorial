@@ -26,6 +26,7 @@ import optimization
 import tokenization
 import tensorflow as tf
 import pandas as pd
+import re
 
 flags = tf.flags
 
@@ -296,8 +297,9 @@ class MnliProcessor(DataProcessor):
 class ImdbProcessor(DataProcessor):
   """Processor for the IMDB data set."""
 
-  def load_directory_data(directory):
+  def load_directory_data(self, directory):
     data = {}
+    data["id"] = []
     data["sentence"] = []
     data["sentiment"] = []
     for file_path in os.listdir(directory):
@@ -309,12 +311,15 @@ class ImdbProcessor(DataProcessor):
     return pd.DataFrame.from_dict(data)
 
 
-  def load_dataset(self, directory):
-    pos_df = load_directory_data(os.path.join(directory, "pos"))
-    neg_df = load_directory_data(os.path.join(directory, "neg"))
+  def load_dataset(self, directory, set_type):
+    pos_df = self.load_directory_data(os.path.join(directory, "pos"))
+    neg_df = self.load_directory_data(os.path.join(directory, "neg"))
     pos_df["polarity"] = 1
     neg_df["polarity"] = 0
-    return self._create_examples(pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True))
+    return self._create_examples(
+      pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True),
+      set_type
+    )
 
   def __init__(self):
     self.dataset = tf.keras.utils.get_file(
@@ -324,24 +329,33 @@ class ImdbProcessor(DataProcessor):
 
   def get_train_examples(self, data_dir):
     """See base class."""
-
-    return load_dataset(
+    return self.load_dataset(
       os.path.join(
         os.path.dirname(self.dataset),
         "aclImdb", 
-        "train")
+        "train"),
+        "train"
     )
 
   def get_dev_examples(self, data_dir):
     """See base class."""
-    return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")),
-        "dev_matched")
+    return self.load_dataset(
+      os.path.join(
+        os.path.dirname(self.dataset),
+        "aclImdb", 
+        "dev_matched"),
+        "dev"
+    )
 
   def get_test_examples(self, data_dir):
     """See base class."""
-    return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "test_matched.tsv")), "test")
+    return self.load_dataset(
+      os.path.join(
+        os.path.dirname(self.dataset),
+        "aclImdb", 
+        "test"),
+        "test"
+    )
 
   def get_labels(self):
     """See base class."""
@@ -871,7 +885,7 @@ def main(_):
         "was only trained up to sequence length %d" %
         (FLAGS.max_seq_length, bert_config.max_position_embeddings))
 
-  tf.gfile.MakeDirs(FLAGS.output_dir)
+  tf.io.gfile.makedirs(FLAGS.output_dir)
 
   task_name = FLAGS.task_name.lower()
 
