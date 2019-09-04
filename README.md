@@ -1,11 +1,12 @@
 # Enterprise Text Classification using BERT Tutorial
 
-Step 1: Gather Data
+Step 0:
+    * Explore BERT Repo to understand steps
 
-Step 2: Explore BERT Repo to understand steps
-
-Step 3: Modify BERT Repo for needs
-
+Step 1:
+    * Gather Data and modify BERT Repo for training needs
+    * Download model and upload to google cloud bucket
+    * Give account read and write access to bucket
 
 ### Results on Text Classification from https://github.com/zihangdai/xlnet
 
