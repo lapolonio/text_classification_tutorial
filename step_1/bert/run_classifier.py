@@ -343,7 +343,7 @@ class ImdbProcessor(DataProcessor):
       os.path.join(
         os.path.dirname(self.dataset),
         "aclImdb", 
-        "dev_matched"),
+        "test"),
         "dev"
     )
 
