@@ -322,8 +322,8 @@ class ImdbProcessor(DataProcessor):
   def load_dataset(self, directory, set_type):
     pos_df = self.load_directory_data(os.path.join(directory, "pos"))
     neg_df = self.load_directory_data(os.path.join(directory, "neg"))
-    pos_df["polarity"] = 1
-    neg_df["polarity"] = 0
+    pos_df["polarity"] = "positive"
+    neg_df["polarity"] = "negative"
     return self._create_examples(
       pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True),
       set_type
@@ -367,14 +367,14 @@ class ImdbProcessor(DataProcessor):
 
   def get_labels(self):
     """See base class."""
-    return [0, 1]
+    return ["negative", "positive"]
 
   def _create_examples(self, lines, set_type):
     """Creates examples for the training and dev sets."""
     examples = lines.apply(lambda x: InputExample(guid=x['id'], # Globally unique ID for bookkeeping, unused in this example
                                        text_a = x['sentence'], 
                                        text_b = None, 
-                                       label = x['polarity'] if set_type != "test" else 0
+                                       label = x['polarity'] if set_type != "test" else "negative"
                                       ), axis = 1
                 )
     return examples
@@ -573,25 +573,39 @@ def file_based_convert_examples_to_features(
     if ex_index % 10000 == 0:
       tf.logging.info("Writing example %d of %d" % (ex_index, len(examples)))
 
-    feature = convert_single_example(ex_index, example, label_list,
-                                     max_seq_length, tokenizer)
-
-    def create_int_feature(values):
-      f = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
-      return f
-
-    features = collections.OrderedDict()
-    features["input_ids"] = create_int_feature(feature.input_ids)
-    features["input_mask"] = create_int_feature(feature.input_mask)
-    features["segment_ids"] = create_int_feature(feature.segment_ids)
-    features["label_ids"] = create_int_feature([feature.label_id])
-    features["is_real_example"] = create_int_feature(
-        [int(feature.is_real_example)])
-
-    tf_example = tf.train.Example(features=tf.train.Features(feature=features))
+    tf_example = from_record_to_tf_example(ex_index, example, label_list, max_seq_length, tokenizer)
     writer.write(tf_example.SerializeToString())
   writer.close()
 
+def memory_based_convert_examples_to_features(
+    examples, label_list, max_seq_length, tokenizer):
+  """Convert a set of `InputExample`s to a TFRecord file."""
+
+  tf_examples = []
+  for (ex_index, example) in enumerate(examples):
+    tf_example = from_record_to_tf_example(ex_index, example, label_list, max_seq_length, tokenizer)
+    tf_examples.append(tf_example.SerializeToString())
+
+  return tf_examples
+
+
+def from_record_to_tf_example(ex_index, example, label_list, max_seq_length, tokenizer):
+  feature = convert_single_example(ex_index, example, label_list,
+                                   max_seq_length, tokenizer)
+
+  def create_int_feature(values):
+    f = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
+    return f
+
+  features = collections.OrderedDict()
+  features["input_ids"] = create_int_feature(feature.input_ids)
+  features["input_mask"] = create_int_feature(feature.input_mask)
+  features["segment_ids"] = create_int_feature(feature.segment_ids)
+  features["label_ids"] = create_int_feature([feature.label_id])
+  features["is_real_example"] = create_int_feature(
+    [int(feature.is_real_example)])
+  tf_example = tf.train.Example(features=tf.train.Features(feature=features))
+  return tf_example
 
 def file_based_input_fn_builder(input_file, seq_length, is_training,
                                 drop_remainder):
