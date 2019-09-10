@@ -1,14 +1,14 @@
 # Enterprise Text Classification using BERT Tutorial
 
 Step 0:
-    * Explore BERT Repo to understand steps
+  * Explore BERT Repo to understand steps
 
 Step 1:
-    * Download data and inspect format
-    * Modify BERT Repo for training needs
-    * Download base model and upload to google cloud bucket
-    * Give account read and write access to bucket
-    * Train model
+  * Download data and inspect format
+  * Modify BERT Repo for training needs
+  * Download base model and upload to google cloud bucket
+  * Give account read and write access to bucket
+  * Train model
 
 ```{bash}
 import sys
@@ -43,10 +43,10 @@ python bert_repo/step_2/bert/run_classifier.py \
 ```
 
 Step 2:
-    * Add code to support exporting model
-    * Write serving_input_fn
-    * Export built model to bucket
-    * Test exported model
+  * Add code to support exporting model
+  * Write serving_input_fn
+  * Export built model to bucket
+  * Test exported model
 
 ```{bash}
 !saved_model_cli show --dir gs://bert_model_demo/imdb_v1/export/1567569486 --tag_set serve --signature_def serving_default
@@ -62,9 +62,9 @@ Step 2:
 ```
 
 Step 3:
-    * Create tensorflow_serving image with model
-    * Deploy image to dockerhub or GCR
-    * Create python client to call tf serving image
+  * Create tensorflow_serving image with model
+  * Deploy image to dockerhub or GCR
+  * Create python client to call tf serving image
 
 ```{bash}
 ./make_tensorflow_serving_container.sh
@@ -81,11 +81,11 @@ curl -X POST \
 ```
 
 Step 4:
-    * Create container for client
-    * Create k8s deployment
-    * Create k8s cluster
-    * Deploy to k8s cluster
-    * Test deployment
+  * Create container for client
+  * Create k8s deployment
+  * Create k8s cluster
+  * Deploy to k8s cluster
+  * Test deployment
 
 ## Resources
 
