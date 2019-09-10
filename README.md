@@ -4,9 +4,11 @@ Step 0:
     * Explore BERT Repo to understand steps
 
 Step 1:
-    * Gather Data and modify BERT Repo for training needs
-    * Download model and upload to google cloud bucket
+    * Download data and inspect format
+    * Modify BERT Repo for training needs
+    * Download base model and upload to google cloud bucket
     * Give account read and write access to bucket
+    * Train model
 
 ```{bash}
 import sys
@@ -85,9 +87,6 @@ Step 4:
     * Deploy to k8s cluster
     * Test deployment
 
-Step 5:
-    * Run 
-
 ## Resources
 
 ### Results on Text Classification from https://github.com/zihangdai/xlnet
@@ -101,7 +100,13 @@ The above numbers are error rates.
 
 ### Links
 
-* IMDB Data: https://ai.stanford.edu/~amaas/data/sentiment/
+* Learn Production-Level Deep Learning from Top Practitioners: <https://fullstackdeeplearning.com/>
+
+* Nuts and Bolts of Applying Deep Learning (Andrew Ng): <https://www.youtube.com/watch?v=F1ka6a13S9I>
+
+* BERT Repo Classification Example: <https://github.com/google-research/bert#sentence-and-sentence-pair-classification-tasks>
+
+* IMDB Data: <https://ai.stanford.edu/~amaas/data/sentiment/>
 
 * Predicting Movie Reviews with BERT on TF Hub.ipynb: <https://colab.research.google.com/github/google-research/bert/blob/master/predicting_movie_reviews_with_bert_on_tf_hub.ipynb>
 
