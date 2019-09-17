@@ -1,6 +1,7 @@
 
 import grpc
 import tensorflow as tf
+import numpy as np
 
 import run_classifier as classifiers
 import tokenization
@@ -56,20 +57,16 @@ def predict():
   model_request = predict_pb2.PredictRequest()
   model_request.model_spec.name = 'bert'
   model_request.model_spec.signature_name = 'serving_default'
-  dims = [tensor_shape_pb2.TensorShapeProto.Dim(size=len(content['sentences']))]
-  tensor_shape_proto = tensor_shape_pb2.TensorShapeProto(dim=dims)
-  tensor_proto = tensor_pb2.TensorProto(
-    dtype=types_pb2.DT_STRING,
-    tensor_shape=tensor_shape_proto,
-    string_val=model_input)
 
-  model_request.inputs['examples'].CopyFrom(tensor_proto)
+  model_request.inputs['examples'].CopyFrom(
+    tf.contrib.util.make_tensor_proto(model_input, shape=[len(model_input)])
+  )
   result = stub.Predict(model_request, 10.0)  # 10 secs timeout
   app.logger.info(result)
   result = tf.make_ndarray(result.outputs["probabilities"])
   app.logger.info(result)
-  pretty_result = "Predicted Label: " + str(result.argmax(axis=1))
-  app.logger.info("Predicted Label: %s", str(result.argmax(axis=1)))
+  pretty_result = "Predicted Label: " + str(np.take(processor.get_labels(), result.argmax(axis=1)))
+  app.logger.info("Predicted Label: %s", str(np.take(processor.get_labels(), result.argmax(axis=1))))
   return pretty_result
 
 
