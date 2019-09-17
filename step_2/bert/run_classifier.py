@@ -322,8 +322,8 @@ class ImdbProcessor(DataProcessor):
   def load_dataset(self, directory, set_type):
     pos_df = self.load_directory_data(os.path.join(directory, "pos"))
     neg_df = self.load_directory_data(os.path.join(directory, "neg"))
-    pos_df["polarity"] = 1
-    neg_df["polarity"] = 0
+    pos_df["polarity"] = "positive"
+    neg_df["polarity"] = "negative"
     return self._create_examples(
       pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True),
       set_type
@@ -367,14 +367,14 @@ class ImdbProcessor(DataProcessor):
 
   def get_labels(self):
     """See base class."""
-    return [0, 1]
+    return ["negative", "positive"]
 
   def _create_examples(self, lines, set_type):
     """Creates examples for the training and dev sets."""
     examples = lines.apply(lambda x: InputExample(guid=x['id'], # Globally unique ID for bookkeeping, unused in this example
                                        text_a = x['sentence'], 
                                        text_b = None, 
-                                       label = x['polarity'] if set_type != "test" else 0
+                                       label = x['polarity'] if set_type != "test" else "negative"
                                       ), axis = 1
                 )
     return examples
