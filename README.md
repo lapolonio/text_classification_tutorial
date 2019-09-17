@@ -1,20 +1,34 @@
 # Enterprise Text Classification using BERT Tutorial
 
-Step 0:
-  * Explore BERT Repo to understand steps
+## Setup:
 
-Step 1:
-  * Download data and inspect format
-  * Modify BERT Repo for training needs
-  * Download base model and upload to google cloud bucket
-  * Give account read and write access to bucket
-  * Train model
+* Download Intellij Community (for diffing folders): <https://www.jetbrains.com/idea/download/>
+
+## Step 0:
+
+* Explore BERT Repo to understand steps
+
+## Step 1: Add code to process data
+
+* Download data and inspect format
+* Modify BERT Repo for training needs
+* Download base model and upload to google cloud bucket
+* Give account read and write access to bucket
+
+## Step 2: Add code to support export
+
+* Add export flags
+* Write serving_input_fn
+
+## Step 3: Build and Export Model
+
+* Train model
 
 ```{bash}
 import sys
 !test -d bert_repo || git clone https://github.com/lapolonio/text_classification_tutorial bert_repo
 if not 'bert_repo' in sys.path:
-  sys.path += ['bert_repo/step_2/bert']
+  sys.path += ['bert_repo/step_3/bert']
 
 
 export BERT_BASE_DIR=gs://bert_model_demo/uncased_L-12_H-768_A-12
@@ -23,7 +37,7 @@ export TPU_NAME=grpc://10.92.118.162:8470
 export OUTPUT_DIR=gs://bert_model_demo/imdb_v1/output/
 export EXPORT_DIR=gs://bert_model_demo/imdb_v1/export/
 
-python bert_repo/step_2/bert/run_classifier.py \
+python bert_repo/step_3/bert/run_classifier.py \
   --task_name=IMDB \
   --do_train=true \
   --do_predict=true \
@@ -41,12 +55,8 @@ python bert_repo/step_2/bert/run_classifier.py \
   --do_serve=true \
   --export_dir=$EXPORT_DIR
 ```
-
-Step 2:
-  * Add code to support exporting model
-  * Write serving_input_fn
-  * Export built model to bucket
-  * Test exported model
+* Export built model to bucket
+* Test exported model
 
 ```{bash}
 !saved_model_cli show --dir gs://bert_model_demo/imdb_v1/export/1567569486 --tag_set serve --signature_def serving_default
@@ -61,15 +71,17 @@ Step 2:
 --input_examples 'examples=[{"input_ids":np.zeros((128), dtype=int).tolist(),"input_mask":np.zeros((128), dtype=int).tolist(),"label_ids":[0],"segment_ids":np.zeros((128), dtype=int).tolist()},{"input_ids":np.zeros((128), dtype=int).tolist(),"input_mask":np.zeros((128), dtype=int).tolist(),"label_ids":[0],"segment_ids":np.zeros((128), dtype=int).tolist()},{"input_ids":np.zeros((128), dtype=int).tolist(),"input_mask":np.zeros((128), dtype=int).tolist(),"label_ids":[0],"segment_ids":np.zeros((128), dtype=int).tolist()}]'
 ```
 
-Step 3:
-  * Create tensorflow_serving image with model
-  * Deploy image to dockerhub or GCR
-  * Create python client to call tf serving image
+##Step 4: Create serving image and test with python client
+
+* Create tensorflow_serving image with model
+* Deploy image to dockerhub or GCR
+* Create python client to call tf serving image
 
 ```{bash}
 ./make_tensorflow_serving_container.sh
 docker run -p 8500:8500 --name bert_serving lapolonio/tf_serving_bert_imdb:1567569486
-pipenv run python run_app.py
+cd bert
+APP_CONFIG_FILE=config/development.py pipenv run python run_app.py
 
 curl -X POST \
   http://localhost:5000/ \
@@ -80,12 +92,13 @@ curl -X POST \
 "i loved the movie it was inspiring."]}'
 ```
 
-Step 4:
-  * Create container for client
-  * Create k8s deployment
-  * Create k8s cluster
-  * Deploy to k8s cluster
-  * Test deployment
+##Step 5: Create client image and deploy
+
+* Create container for client
+* Create k8s deployment
+* Create k8s cluster
+* Deploy to k8s cluster
+* Test deployment
 
 ## Resources
 
@@ -100,9 +113,13 @@ The above numbers are error rates.
 
 ### Links
 
+* https://martinfowler.com/articles/cd4ml.html
+
 * Learn Production-Level Deep Learning from Top Practitioners: <https://fullstackdeeplearning.com/>
 
 * Nuts and Bolts of Applying Deep Learning (Andrew Ng): <https://www.youtube.com/watch?v=F1ka6a13S9I>
+
+* http://jalammar.github.io/illustrated-bert/
 
 * BERT Repo Classification Example: <https://github.com/google-research/bert#sentence-and-sentence-pair-classification-tasks>
 
@@ -117,3 +134,5 @@ The above numbers are error rates.
 * Use TensorFlow Serving with Kubernetes: <https://www.tensorflow.org/tfx/serving/serving_kubernetes#query_the_server>
 
 * Example client communicating with Tensorflow Serving: <https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/resnet_client_grpc.py#L53>
+
+* TensorFlow Serving with a variable batch size: https://www.damienpontifex.com/2018/05/10/tensorflow-serving-with-a-variable-batch-size/
