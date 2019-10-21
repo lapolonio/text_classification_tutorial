@@ -317,7 +317,7 @@ class ImdbProcessor(DataProcessor):
     pos_df["polarity"] = "positive"
     neg_df["polarity"] = "negative"
     return self._create_examples(
-      pd.concat([pos_df, neg_df]).sample(frac=1).reset_index(drop=True),
+      pd.concat([pos_df, neg_df]).sample(frac=1, random_state=42).reset_index(drop=True),
       set_type
     )
 
