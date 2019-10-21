@@ -51,7 +51,7 @@ def predict():
 
   inputExamples = processor._create_examples(pd.DataFrame.from_dict(data), 'test')
   model_input = classifiers.memory_based_convert_examples_to_features(inputExamples, label_list, max_seq_length, tokenizer)
-
+  app.logger.info(model_input)
   # Send request
   # See prediction_service.proto for gRPC request/response details.
   model_request = predict_pb2.PredictRequest()
@@ -61,6 +61,7 @@ def predict():
   model_request.inputs['examples'].CopyFrom(
     tf.contrib.util.make_tensor_proto(model_input, shape=[len(model_input)])
   )
+  app.logger.info(model_request)
   result = stub.Predict(model_request, 10.0)  # 10 secs timeout
   app.logger.info(result)
   result = tf.make_ndarray(result.outputs["probabilities"])
