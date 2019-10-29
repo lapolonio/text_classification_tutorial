@@ -192,4 +192,8 @@ The above numbers are error rates.
 
 * Optimizing TensorFlow Serving performance with NVIDIA TensorRT <https://medium.com/tensorflow/optimizing-tensorflow-serving-performance-with-nvidia-tensorrt-6d8a2347869a>
 
-* 
+* TFX is an end-to-end platform for deploying production ML pipelines <https://github.com/tensorflow/tfx>
+
+* Kubeflow <https://www.kubeflow.org/>
+
+* Seldon <https://docs.seldon.io/projects/seldon-core/en/latest/>
