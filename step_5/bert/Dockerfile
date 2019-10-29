@@ -6,4 +6,4 @@ WORKDIR /code
 RUN pip install pipenv
 RUN pipenv install
 ADD asset/vocab.txt asset/vocab.txt
-CMD ["APP_CONFIG_FILE=config/production.py", "pipenv", "run", "python", "run_app.py"]
+CMD ["pipenv", "run", "python", "run_app.py"]
