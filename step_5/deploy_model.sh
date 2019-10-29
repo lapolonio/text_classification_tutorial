@@ -1,2 +1,2 @@
-kubectl apply -f client-chart.yml
+kubectl apply -f model-chart.yml
 kubectl get service # get service IPs

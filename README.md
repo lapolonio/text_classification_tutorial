@@ -77,25 +77,42 @@ python bert_repo/step_3/bert/run_classifier.py \
 
 ##Step 4: Create serving image and test with python client
 
-* Create python client to call tf serving image
-    * run_app.py
 * Create k8s cluster
     * make_cluster.sh
-* Create tensorflow_serving deployment with model
-    * model-chart.yml
 * Copy model to persistent volume claim
     * copy_model_to_k8s.sh
+* Create tensorflow_serving deployment with model
+    * model-chart.yml
 * Deploy to k8s
     * deploy_model.sh
+* Test Server Service
+    * kubectl run curler -it --rm --image=pstauffer/curl --restart=Never -- sh
+        * curl imdb-sentiment-service:8501/v1/models/bert
+* Create python client to call tf serving image
+    * run_app.py
+* Download needed assets
+    * prepare_bert_client.sh
+* Run code locally
+    * Login
+        * gcloud auth login
+    * Set kube context
+        * gcloud container clusters get-credentials bert-cluster --zone us-central1-b --project analog-subset-256304
+    * Port forward service
+        * kubectl port-forward agnews-server-5cc95c9456-fmmx5 8501:8501 8500:8500
+    * Run app locally
+        
 
 ```{bash}
+mkdir ~/models
 gsutil cp -r  $MODEL_LOCATION ~/models
 export MODEL_NAME=bert
 docker run -p 8500:8500 -p 8501:8501 \
---mount type=bind,source=/Users/leonardo.apolonio/models,target=/models/$MODEL_NAME \
+--mount type=bind,source=/home/leo/models,target=/models/$MODEL_NAME \
 -e MODEL_NAME=$MODEL_NAME --name bert_serving -t tensorflow/serving:latest &
 cd bert
-APP_CONFIG_FILE=config/development.py pipenv run python run_app.py
+python3 -m pip install --user pipenv
+python3 -m pipenv install
+APP_CONFIG_FILE=config/development.py python3 -m pipenv run python run_app.py
 
 curl -X POST \
   http://localhost:5000/ \
@@ -111,7 +128,7 @@ curl -X POST \
 * Create container for client
     * make_client_container.sh
 * Create k8s deployment
-    * super-chart.yml
+    * client-chart.yml
 * Deploy to k8s cluster
     * deploy_app.sh
 * Test deployment
