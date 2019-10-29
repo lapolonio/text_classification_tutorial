@@ -3,6 +3,7 @@
 ## Setup:
 
 * Download Intellij Community (for diffing folders): <https://www.jetbrains.com/idea/download/>
+* Slides <https://docs.google.com/presentation/d/e/2PACX-1vRShMiEX4u9yawt4kA7Nmq2E1o3eCI4yYtV4WRq8Wg2qGH_RJYP3PxqPbEjTcJ8PifCLtI0I8lxmqJw/pub?start=true&loop=true&delayms=10000>
 
 ## Step 0:
 
@@ -12,7 +13,7 @@
 
 * Download data and inspect format
 * Modify BERT Repo for training needs
-* Download base model and upload to google cloud bucket
+* Create  google cloud bucket for model checkpoint saving
 * Give account read and write access to bucket
 
 ## Step 2: Add code to support export
@@ -20,7 +21,7 @@
 * Add export flags
 * Write serving_input_fn
 
-## Step 3: Build and Export Model
+## Step 3: Build, Examine, Export Model
 
 * Train model
 
@@ -30,6 +31,8 @@ import sys
 if not 'bert_repo' in sys.path:
   sys.path += ['bert_repo/step_3/bert']
 
+
+%%bash
 
 export BERT_BASE_DIR=gs://bert_model_demo/uncased_L-12_H-768_A-12
 export IMDB_DIR=NOT_USED
@@ -73,13 +76,23 @@ python bert_repo/step_3/bert/run_classifier.py \
 
 ##Step 4: Create serving image and test with python client
 
-* Create tensorflow_serving image with model
-* Deploy image to dockerhub or GCR
 * Create python client to call tf serving image
+    * run_app.py
+* Create k8s cluster
+    * make_cluster.sh
+* Create tensorflow_serving deployment with model
+    * model-chart.yml
+* Copy model to persistent volume claim
+    * copy_model_to_k8s.sh
+* Deploy to k8s
+    * deploy_model.sh
 
 ```{bash}
-./make_tensorflow_serving_container.sh
-docker run -p 8500:8500 --name bert_serving lapolonio/tf_serving_bert_imdb:1567569486
+gsutil cp -r  $MODEL_LOCATION ~/models
+export MODEL_NAME=bert
+docker run -p 8500:8500 -p 8501:8501 \
+--mount type=bind,source=/Users/leonardo.apolonio/models,target=/models/$MODEL_NAME \
+-e MODEL_NAME=$MODEL_NAME --name bert_serving -t tensorflow/serving:latest &
 cd bert
 APP_CONFIG_FILE=config/development.py pipenv run python run_app.py
 
@@ -95,9 +108,11 @@ curl -X POST \
 ##Step 5: Create client image and deploy
 
 * Create container for client
+    * make_client_container.sh
 * Create k8s deployment
-* Create k8s cluster
+    * super-chart.yml
 * Deploy to k8s cluster
+    * deploy_app.sh
 * Test deployment
 
 ## Resources
@@ -113,13 +128,48 @@ The above numbers are error rates.
 
 ### Links
 
+#### Bert Model Theory, Explanation and Research
+
+* Evolution of Representations in the Transformer <https://lena-voita.github.io/posts/emnlp19_evolution.html>
+
+* A survyer of Pre-trained Languge Model literature <https://github.com/thunlp/PLMpapers>
+
+* The Illustrated BERT, ELMo, and co. (How NLP Cracked Transfer Learning) <http://jalammar.github.io/illustrated-bert/>
+
+* Has BERT Been Cheating? Researchers Say it Exploits ‘Spurious Statistical Cues’ <https://medium.com/syncedreview/has-bert-been-cheating-researchers-say-it-exploits-spurious-statistical-cues-b256760ded57>
+
+#### Bert/Transformer Model Implementations
+
+* Original Bert Repo <https://github.com/google-research/bert>
+
+* Multiple Transformer Model Architecture Implementations in Tensorflow and Pytorch  <https://github.com/huggingface/transformers>
+
+#### Kubernetes Resources
+
+* The Illustrated Children's Guide to Kubernetes <https://www.youtube.com/watch?v=4ht22ReBjno>
+
+* Kubernetes Basics <https://kubernetes.io/docs/tutorials/kubernetes-basics/>
+
+* Kubernetes NodePort vs LoadBalancer vs Ingress? When should I use what? <https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0>
+
+#### Machine Learning Engineer Resources
+
 * https://martinfowler.com/articles/cd4ml.html
 
 * Learn Production-Level Deep Learning from Top Practitioners: <https://fullstackdeeplearning.com/>
 
 * Nuts and Bolts of Applying Deep Learning (Andrew Ng): <https://www.youtube.com/watch?v=F1ka6a13S9I>
 
-* http://jalammar.github.io/illustrated-bert/
+#### Performance
+
+* Benchmarking Transformers: PyTorch and TensorFlow <https://medium.com/huggingface/benchmarking-transformers-pytorch-and-tensorflow-e2917fb891c2>
+
+* Benchmarking Transformers
+ <https://docs.google.com/spreadsheets/d/1sryqufw2D0XlUH4sq3e9Wnxu5EAQkaohzrJbd5HdQ_w/edit#gid=0>
+
+* NVIDIA Announces TensorRT 6; Breaks 10 millisecond barrier for BERT-Large <https://news.developer.nvidia.com/tensorrt6-breaks-bert-record/>
+
+#### Tutorials
 
 * BERT Repo Classification Example: <https://github.com/google-research/bert#sentence-and-sentence-pair-classification-tasks>
 
@@ -135,4 +185,10 @@ The above numbers are error rates.
 
 * Example client communicating with Tensorflow Serving: <https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/resnet_client_grpc.py#L53>
 
-* TensorFlow Serving with a variable batch size: https://www.damienpontifex.com/2018/05/10/tensorflow-serving-with-a-variable-batch-size/
+* TensorFlow Serving with a variable batch size: <https://www.damienpontifex.com/2018/05/10/tensorflow-serving-with-a-variable-batch-size/>
+
+### Next Steps
+
+* Optimizing TensorFlow Serving performance with NVIDIA TensorRT <https://medium.com/tensorflow/optimizing-tensorflow-serving-performance-with-nvidia-tensorrt-6d8a2347869a>
+
+* 
