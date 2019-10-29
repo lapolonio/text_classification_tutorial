@@ -10,7 +10,8 @@ items:
       type: LoadBalancer
       ports:
           - name: http
-            containerPort: 5000
+            port: 5000
+            targetPort: 5000
       selector:
         app.kubernetes.io/name: imdb-client
 
@@ -29,16 +30,15 @@ items:
             app.kubernetes.io/name: imdb-client
         spec:
           containers:
-            - image: tensorflow/serving:latest-gpu
-              name: imdb-model
+            - image: docker.io/lapolonio/imdb_client:v3
+              name: imdb-client
               env:
-                - name: MODEL_NAME
-                  value: "bert"
+                  - name: APP_CONFIG_FILE
+                    value: "config/production.py"
+              command: ["pipenv", "run", "python", "run_app.py"]
               ports:
-                - name: grpc
-                  containerPort: 8500
-                - name: rest
-                  containerPort: 8501
+                - name: http
+                  containerPort: 5000
               resources:
                 requests:
                   cpu: 200m
@@ -46,12 +46,5 @@ items:
                 limits:
                   cpu: 2
                   memory: 2Gi
-              volumeMounts:
-                - name: model-repo
-                  mountPath: /models
-          volumes:
-            - name: model-repo
-              persistentVolumeClaim:
-                claimName: model-repo-storage
 kind: List
 metadata: {}
