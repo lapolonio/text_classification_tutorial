@@ -1051,10 +1051,10 @@ def main(_):
       while len(predict_examples) % FLAGS.predict_batch_size != 0:
         predict_examples.append(PaddingInputExample())
 
-    predict_file = os.path.join(FLAGS.output_dir, "predict.tf_record")
-    file_based_convert_examples_to_features(predict_examples, label_list,
-                                            FLAGS.max_seq_length, tokenizer,
-                                            predict_file)
+    input_features = convert_examples_to_features(predict_examples,
+                                                  label_list,
+                                                  FLAGS.max_seq_length,
+                                                  tokenizer)
 
     tf.logging.info("***** Running prediction*****")
     tf.logging.info("  Num examples = %d (%d actual, %d padding)",
@@ -1063,11 +1063,11 @@ def main(_):
     tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
 
     predict_drop_remainder = True if FLAGS.use_tpu else False
-    predict_input_fn = file_based_input_fn_builder(
-        input_file=predict_file,
-        seq_length=FLAGS.max_seq_length,
-        is_training=False,
-        drop_remainder=predict_drop_remainder)
+    predict_input_fn = input_fn_builder(
+      features=input_features,
+      seq_length=FLAGS.max_seq_length,
+      is_training=False,
+      drop_remainder=predict_drop_remainder)
 
     result = estimator.predict(input_fn=predict_input_fn)
 
