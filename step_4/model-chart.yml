@@ -3,9 +3,9 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: agnews-server-service
+      name: imdb-sentiment-service
       labels:
-        app.kubernetes.io/name: agnews-server
+        app.kubernetes.io/name: imdb-server
     spec:
       type: LoadBalancer
       ports:
@@ -17,25 +17,25 @@ items:
           port: 8501
           targetPort: 8501
       selector:
-        app.kubernetes.io/name: agnews-server
+        app.kubernetes.io/name: imdb-server
 
 # APP Environment
   - apiVersion: extensions/v1beta1
     kind: Deployment
     metadata:
-      name: agnews-server
+      name: imdb-server
       labels:
-        app.kubernetes.io/name: agnews-server
+        app.kubernetes.io/name: imdb-server
     spec:
       replicas: 1
       template:
         metadata:
           labels:
-            app.kubernetes.io/name: agnews-server
+            app.kubernetes.io/name: imdb-server
         spec:
           containers:
             - image: tensorflow/serving:latest-gpu
-              name: agnews-model
+              name: imdb-model
               env:
                 - name: MODEL_NAME
                   value: "bert"

@@ -14,6 +14,7 @@ from tensorflow.core.framework import types_pb2
 
 from flask import Flask
 from flask import request
+import time
 
 import pandas as pd
 import random
@@ -28,6 +29,7 @@ def hello():
 
 @app.route("/", methods = ['POST'])
 def predict():
+  app.logger.info("Entering Predict Method")
   # MODEL PARAMS
   max_seq_length = 128
 
@@ -50,7 +52,13 @@ def predict():
     data["sentence"].append(sentence)
 
   inputExamples = processor._create_examples(pd.DataFrame.from_dict(data), 'test')
+
+  t0 = time.time()
   model_input = classifiers.memory_based_convert_examples_to_features(inputExamples, label_list, max_seq_length, tokenizer)
+  t1 = time.time()
+  total = t1-t0
+  app.logger.info("Convert Examples Time Taken: %d", total)
+
   app.logger.info(model_input)
   # Send request
   # See prediction_service.proto for gRPC request/response details.
@@ -62,12 +70,19 @@ def predict():
     tf.contrib.util.make_tensor_proto(model_input, shape=[len(model_input)])
   )
   app.logger.info(model_request)
-  result = stub.Predict(model_request, 10.0)  # 10 secs timeout
+
+  t0 = time.time()
+  result = stub.Predict(model_request, 60.0)  # 20 secs timeout
+  t1 = time.time()
+  total = t1-t0
+
   app.logger.info(result)
   result = tf.make_ndarray(result.outputs["probabilities"])
   app.logger.info(result)
   pretty_result = "Predicted Label: " + str(np.take(processor.get_labels(), result.argmax(axis=1)))
   app.logger.info("Predicted Label: %s", str(np.take(processor.get_labels(), result.argmax(axis=1))))
+  app.logger.info("Predict Time Taken: %f", total)
+
   return pretty_result
 
 

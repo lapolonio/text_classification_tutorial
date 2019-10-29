@@ -318,8 +318,16 @@ class ImdbProcessor(DataProcessor):
         data["sentiment"].append(meta.group(2))
     return pd.DataFrame.from_dict(data)
 
-
   def load_dataset(self, directory, set_type):
+
+    try:
+      self.dataset
+    except NameError:
+      self.dataset = tf.keras.utils.get_file(
+        fname="aclImdb.tar.gz",
+        origin="http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz",
+        extract=True)
+
     pos_df = self.load_directory_data(os.path.join(directory, "pos"))
     neg_df = self.load_directory_data(os.path.join(directory, "neg"))
     pos_df["polarity"] = "positive"
@@ -328,12 +336,6 @@ class ImdbProcessor(DataProcessor):
       pd.concat([pos_df, neg_df]).sample(frac=1, random_state=42).reset_index(drop=True),
       set_type
     )
-
-  def __init__(self):
-    self.dataset = tf.keras.utils.get_file(
-      fname="aclImdb.tar.gz", 
-      origin="http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz", 
-      extract=True)
 
   def get_train_examples(self, data_dir):
     """See base class."""
