@@ -4,6 +4,7 @@
 
 * Download Intellij Community (for diffing folders): <https://www.jetbrains.com/idea/download/>
 * Slides <https://docs.google.com/presentation/d/e/2PACX-1vRShMiEX4u9yawt4kA7Nmq2E1o3eCI4yYtV4WRq8Wg2qGH_RJYP3PxqPbEjTcJ8PifCLtI0I8lxmqJw/pub?start=true&loop=true&delayms=10000>
+* Slack <https://join.slack.com/t/tf-text-classifi/shared_invite/enQtODAxMjQ5MjQwNjQzLTZkNGYxMjgzNGQ2MTgyNjZlZWMzMGYyMzU0OTRiNzhhN2VhNGFlYWYwZGY1ZmMxZDdiMWYyOTI1NmYwZjhlNTQ>
 
 ## Step 0:
 
